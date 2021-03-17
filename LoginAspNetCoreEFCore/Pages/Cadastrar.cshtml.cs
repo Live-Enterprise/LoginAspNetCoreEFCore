@@ -37,7 +37,7 @@ namespace LoginAspNetCoreEFCore.Pages
 
             await mySqlCommand.ExecuteReaderAsync();
 
-            return new JsonResult(new { Msg = "Usuário cadastrado com sucesso!" });
+            return new JsonResult(new { Msg = "Usuário cadastrado com sucesso!", Url = Url.Page("") });
         }
     }
 }

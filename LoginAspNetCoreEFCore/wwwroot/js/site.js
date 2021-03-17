@@ -1,4 +1,15 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿function Sucesso(data) {
+    Swal.fire(
+        'Sucesso',
+        data.msg,
+        'success'
+    );
+}
 
-// Write your JavaScript code.
+function Falha() {
+    Swal.fire(
+        'Falha',
+        'Ocorreu um erro inesperado! Tente novamente mais tarde!',
+        'error'
+    );
+}
