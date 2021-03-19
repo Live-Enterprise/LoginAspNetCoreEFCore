@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using LoginAspNetCoreEFCore.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using MySql.Data.MySqlClient;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -10,6 +12,13 @@ namespace LoginAspNetCoreEFCore.Controllers
 {
     public class LoginController : Controller
     {
+        private readonly Contexto _contexto;
+
+        public LoginController(Contexto contexto)
+        {
+            _contexto = contexto;
+        }
+
         public IActionResult Index()
         {
             if (User.Identity.IsAuthenticated)
@@ -22,18 +31,12 @@ namespace LoginAspNetCoreEFCore.Controllers
         [HttpPost]
         public async Task<IActionResult> Logar(string username, string senha, bool manterlogado)
         {
-            MySqlConnection mySqlConnection = new MySqlConnection("server=localhost;database=usuariosdb;uid=root;password=admin");
-            await mySqlConnection.OpenAsync();
+            Usuario usuario = _contexto.Usuarios.AsNoTracking().FirstOrDefault(x => x.Username == username && x.Senha == senha);
 
-            MySqlCommand mySqlCommand = mySqlConnection.CreateCommand();
-            mySqlCommand.CommandText = $"SELECT * FROM usuarios WHERE username = '{username}' AND senha = '{senha}'";
-
-            MySqlDataReader reader = mySqlCommand.ExecuteReader();
-
-            if (await reader.ReadAsync())
+            if (usuario != null)
             {
-                int usuarioId = reader.GetInt32(0);
-                string nome = reader.GetString(1);
+                int usuarioId = usuario.UsuarioId;
+                string nome = usuario.Nome;
 
                 List<Claim> direitosAcesso = new List<Claim>
                 {

@@ -1,7 +1,9 @@
+using LoginAspNetCoreEFCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MySql.Data.MySqlClient;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LoginAspNetCoreEFCore.Pages
@@ -21,48 +23,39 @@ namespace LoginAspNetCoreEFCore.Pages
         [BindProperty(SupportsGet = true)]
         public string Usuario { get; set; }
 
-        public async Task OnGet()
+        private readonly Contexto _contexto;
+
+        public EditarModel(Contexto contexto)
         {
-            MySqlConnection mySqlConnection = new MySqlConnection("server=localhost;database=usuariosdb;uid=root;password=admin");
-            await mySqlConnection.OpenAsync();
-
-            MySqlCommand mySqlCommand = mySqlConnection.CreateCommand();
-            mySqlCommand.CommandText = $"SELECT * FROM usuarios WHERE id = '{Id}'";
-
-            MySqlDataReader reader = mySqlCommand.ExecuteReader();
-
-            if (await reader.ReadAsync())
-            {
-                Nome = reader.GetString(1);
-                Usuario = reader.GetString(2);
-            }
-
-            await mySqlConnection.CloseAsync();
+            _contexto = contexto;
         }
 
-        public async Task<IActionResult> OnPost()
+        public void OnGet()
         {
-            MySqlConnection mySqlConnection = new MySqlConnection("server=localhost;database=usuariosdb;uid=root;password=admin");
-            await mySqlConnection.OpenAsync();
+            Usuario usuario = _contexto.Usuarios.AsNoTracking().FirstOrDefault(x => x.UsuarioId == Id);
+            Nome = usuario.Nome;
+            Usuario = usuario.Username;
+        }
 
-            MySqlCommand mySqlCommand = mySqlConnection.CreateCommand();
-            mySqlCommand.CommandText = $"UPDATE usuarios SET username = '{Usuario}', nome = '{Nome}' WHERE id = {Id}";
+        public IActionResult OnPost()
+        {
+            Usuario usuario = _contexto.Usuarios.FirstOrDefault(x => x.UsuarioId == Id);
 
-            await mySqlCommand.ExecuteReaderAsync();
+            usuario.Username = Usuario;
+            usuario.Nome = Nome;
+
+            _contexto.Update(usuario);
+            _contexto.SaveChanges();
 
             return new JsonResult(new { Msg = "Usuário Editado com sucesso!" });
         }
 
-        public async Task<IActionResult> OnGetApagar()
+        public IActionResult OnGetApagar()
         {
-            MySqlConnection mySqlConnection = new MySqlConnection("server=localhost;database=usuariosdb;uid=root;password=admin");
-            await mySqlConnection.OpenAsync();
+            Usuario usuario = _contexto.Usuarios.FirstOrDefault(x => x.UsuarioId == Id);
 
-            MySqlCommand mySqlCommand = mySqlConnection.CreateCommand();
-            mySqlCommand.CommandText = $"DELETE FROM usuarios WHERE id = {Id}";
-
-            await mySqlCommand.ExecuteReaderAsync();
-            await mySqlConnection.CloseAsync();
+            _contexto.Remove(usuario);
+            _contexto.SaveChanges();
 
             return new JsonResult(new { Msg = "Usuário Removido com sucesso!" });
         }

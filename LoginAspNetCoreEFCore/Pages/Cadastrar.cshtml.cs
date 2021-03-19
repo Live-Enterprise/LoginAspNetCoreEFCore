@@ -1,8 +1,7 @@
+using LoginAspNetCoreEFCore.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MySql.Data.MySqlClient;
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 
 namespace LoginAspNetCoreEFCore.Pages
 {
@@ -23,21 +22,28 @@ namespace LoginAspNetCoreEFCore.Pages
         [BindProperty(SupportsGet = true)]
         public string Senha { get; set; }
 
+        private readonly Contexto _contexto;
+
+        public CadastrarModel(Contexto contexto)
+        {
+            _contexto = contexto;
+        }
+
         public void OnGet()
         {
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public IActionResult OnPost()
         {
-            MySqlConnection mySqlConnection = new MySqlConnection("server=localhost;database=usuariosdb;uid=root;password=admin");
-            await mySqlConnection.OpenAsync();
+            _contexto.Add(new Usuario
+            {
+                Nome = Nome,
+                Username = Usuario,
+                Senha = Senha
+            });
+            _contexto.SaveChanges();
 
-            MySqlCommand mySqlCommand = mySqlConnection.CreateCommand();
-            mySqlCommand.CommandText = $"INSERT INTO usuarios (nome, username, senha) VALUES ('{Nome}', '{Usuario}', '{Senha}')";
-
-            await mySqlCommand.ExecuteReaderAsync();
-
-            return new JsonResult(new { Msg = "Usuário cadastrado com sucesso!", Url = Url.Page("") });
+            return new JsonResult(new { Msg = "Usuário cadastrado com sucesso!" });
         }
     }
 }

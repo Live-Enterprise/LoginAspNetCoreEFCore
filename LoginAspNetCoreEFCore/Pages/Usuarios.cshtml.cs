@@ -1,44 +1,25 @@
+using LoginAspNetCoreEFCore.Models;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MySql.Data.MySqlClient;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LoginAspNetCoreEFCore.Pages
 {
     public class UsuariosModel : PageModel
     {
-        public List<UsuarioViewModel> Usuarios { get; set; }
+        public List<Usuario> Usuarios { get; set; }
 
-        public async Task OnGet()
+        private readonly Contexto _contexto;
+
+        public UsuariosModel(Contexto contexto)
         {
-            MySqlConnection mySqlConnection = new MySqlConnection("server=localhost;database=usuariosdb;uid=root;password=admin");
-            await mySqlConnection.OpenAsync();
-
-            MySqlCommand mySqlCommand = mySqlConnection.CreateCommand();
-            mySqlCommand.CommandText = $"SELECT * FROM usuarios";
-
-            MySqlDataReader reader = mySqlCommand.ExecuteReader();
-
-            Usuarios = new List<UsuarioViewModel>();
-
-            while (await reader.ReadAsync())
-            {
-                Usuarios.Add(new UsuarioViewModel
-                {
-                    Id = reader.GetInt32(0),
-                    Nome = reader.GetString(1),
-                    Usuario = reader.GetString(2)
-                });
-            }
-        
-            await mySqlConnection.CloseAsync();
+            _contexto = contexto;
         }
-    }
 
-    public class UsuarioViewModel
-    {
-        public int Id { get; set; }
-        public string Nome { get; set; }
-        public string Usuario { get; set; }
+        public void OnGet()
+        {
+            Usuarios = _contexto.Usuarios.ToList();
+        }
     }
 }
